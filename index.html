@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Dove Hunt - Classic Game</title>
     <style>
         body {
@@ -53,6 +53,70 @@
         canvas {
             display: block;
             cursor: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIFZlcnRpY2FsIGxpbmUgLS0+CiAgPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMTIiIHN0cm9rZT0icmVkIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8bGluZSB4MT0iMTYiIHkxPSIyMCIgeDI9IjE2IiB5Mj0iMjgiIHN0cm9rZT0icmVkIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8IS0tIEhvcml6b250YWwgbGluZSAtLT4KICA8bGluZSB4MT0iNCIgeTE9IjE2IiB4Mj0iMTIiIHkyPSIxNiIgc3Ryb2tlPSJyZWQiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSIyMCIgeTE9IjE2IiB4Mj0iMjgiIHkyPSIxNiIgc3Ryb2tlPSJyZWQiIHN0cm9rZS13aWR0aD0iMiIvPgogIDwhLS0gQ2VudGVyIGRvdCAtLT4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxLjUiIGZpbGw9InJlZCIvPgo8L3N2Zz4K') 16 16, crosshair;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+                overflow: auto;
+            }
+            
+            #game-container {
+                border: 2px solid #34495e;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            #game-info {
+                font-size: 12px;
+                padding: 8px;
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                width: auto;
+                text-align: center;
+            }
+            
+            .instructions {
+                font-size: 10px;
+                padding: 8px;
+                bottom: 5px;
+                left: 5px;
+                right: 5px;
+                transform: none;
+                width: auto;
+            }
+            
+            canvas {
+                cursor: pointer !important; /* Use normal pointer on mobile */
+            }
+        }
+        
+        /* Portrait mobile */
+        @media (max-width: 480px) and (orientation: portrait) {
+            #game-info {
+                position: static;
+                margin-bottom: 10px;
+            }
+            
+            .instructions {
+                position: static;
+                margin-top: 10px;
+            }
+            
+            body {
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: stretch;
+                padding: 10px;
+            }
+            
+            #game-container {
+                margin: 10px 0;
+            }
         }
     </style>
 </head>

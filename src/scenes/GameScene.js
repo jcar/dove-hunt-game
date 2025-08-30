@@ -48,22 +48,37 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // Detect mobile device
+        this.isMobile = window.innerWidth <= 768;
+        const { width, height } = this.cameras.main;
+        
         // Sky background is already set in main config
         
         // Add trees in background
         this.createTrees();
         
-        // Add grass at the bottom
-        this.grass = this.add.image(400, 550, 'grass');
+        // Add grass at the bottom - scale based on screen size
+        const grassY = height - 50;
+        this.grass = this.add.image(width / 2, grassY, 'grass');
+        this.grass.setDisplaySize(width, 100);
         
-        // Level indicator
-        this.levelText = this.add.text(20, 20, `LEVEL ${this.level}`, {
-            fontSize: '24px',
+        // Level indicator - adjust size and position for mobile
+        const levelFontSize = this.isMobile ? '18px' : '24px';
+        const levelX = this.isMobile ? width / 2 : 20;
+        const levelY = this.isMobile ? 15 : 20;
+        
+        this.levelText = this.add.text(levelX, levelY, `LEVEL ${this.level}`, {
+            fontSize: levelFontSize,
             fill: '#FFD700',
             fontFamily: 'Arial Bold',
             stroke: '#000000',
             strokeThickness: 2
         });
+        
+        if (this.isMobile) {
+            this.levelText.setOrigin(0.5, 0);
+        }
+        
         this.levelText.setDepth(1000);
         
         // Set up input
@@ -84,11 +99,19 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createTrees() {
+        const { width, height } = this.cameras.main;
+        const treeScale = this.isMobile ? 0.6 : 1.0;
+        
+        // Position trees relative to screen size
+        const leftTreesX = width * 0.125; // 12.5% from left
+        const rightTreesX = width * 0.875; // 87.5% from left
+        const treeY = height - 80;
+        
         // Add some background trees
-        this.add.image(100, 520, 'tree').setScale(1.5);
-        this.add.image(700, 510, 'tree').setScale(1.2);
-        this.add.image(50, 530, 'tree').setScale(0.8);
-        this.add.image(750, 525, 'tree').setScale(1.0);
+        this.add.image(leftTreesX, treeY, 'tree').setScale(1.5 * treeScale);
+        this.add.image(rightTreesX, treeY - 10, 'tree').setScale(1.2 * treeScale);
+        this.add.image(leftTreesX - 50, treeY + 10, 'tree').setScale(0.8 * treeScale);
+        this.add.image(rightTreesX + 50, treeY + 5, 'tree').setScale(1.0 * treeScale);
     }
 
     setupInput() {
