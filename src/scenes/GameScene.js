@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Dove from '../sprites/Dove.js';
+import SimpleAudioManager from '../audio/SimpleAudioManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -93,6 +94,11 @@ export default class GameScene extends Phaser.Scene {
         
         // Start level
         this.startLevel();
+        
+        // Initialize audio system immediately (singleton)
+        this.audioManager = SimpleAudioManager.getInstance(this);
+        this.audioManager.init();
+        this.audioManager.startMusic();
         
         // Update HTML UI
         this.updateUI();
@@ -240,6 +246,11 @@ export default class GameScene extends Phaser.Scene {
         this.shotsLeft--;
         this.gameStats.totalShots++;
         this.updateUI();
+
+        // Play shot sound
+        if (this.audioManager) {
+            this.audioManager.playShot();
+        }
 
         // Create muzzle flash effect
         this.createMuzzleFlash(pointer.x, pointer.y);

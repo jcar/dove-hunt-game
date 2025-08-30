@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <style>
+      .dove-body { fill: #f5f5f5; stroke: #333; stroke-width: 0.5; }
+      .dove-wing { fill: #e0e0e0; stroke: #333; stroke-width: 0.3; }
+      .dove-eye { fill: #333; }
+      .dove-beak { fill: #ff6b35; stroke: #333; stroke-width: 0.3; }
+    </style>
+  </defs>
+  
+  <!-- Dove body -->
+  <ellipse cx="16" cy="18" rx="8" ry="6" class="dove-body"/>
+  
+  <!-- Wing -->
+  <ellipse cx="12" cy="16" rx="6" ry="4" class="dove-wing"/>
+  
+  <!-- Head -->
+  <circle cx="22" cy="14" r="4" class="dove-body"/>
+  
+  <!-- Eye -->
+  <circle cx="24" cy="13" r="1" class="dove-eye"/>
+  
+  <!-- Beak -->
+  <path d="M 26 14 L 29 13 L 26 15 Z" class="dove-beak"/>
+  
+  <!-- Tail feathers -->
+  <ellipse cx="6" cy="20" rx="3" ry="2" class="dove-wing" transform="rotate(-15 6 20)"/>
+  <ellipse cx="4" cy="18" rx="2.5" ry="1.5" class="dove-wing" transform="rotate(-30 4 18)"/>
+</svg>

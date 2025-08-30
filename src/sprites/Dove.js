@@ -311,6 +311,11 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         // Change sprite appearance (darker/different color)
         this.setAlpha(0.7);
         
+        // Play hit sound
+        if (this.scene.audioManager) {
+            this.scene.audioManager.playHit();
+        }
+        
         // Check if this will be the last bird hit in the level
         const currentDovesHit = this.scene.dovesHit; // This is before we increment it
         const dovesRequired = this.scene.dovesRequired;
@@ -420,6 +425,11 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         this.body.setVelocity(0, 0); // Stop all movement
         this.body.setGravityY(0); // No gravity for explosion
         
+        // Play explosion sound
+        if (this.scene.audioManager) {
+            this.scene.audioManager.playExplosion();
+        }
+        
         // Flash effect before explosion
         this.scene.tweens.add({
             targets: this,
@@ -447,6 +457,11 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         // Loop-de-loop death - dove does a crazy aerial loop before crashing
         this.body.setVelocity(0, -150); // Strong upward momentum
         this.body.setGravityY(0); // No gravity initially
+        
+        // Play whoosh sound for the loop
+        if (this.scene.audioManager) {
+            this.scene.audioManager.playWhoosh();
+        }
         
         // Create the loop animation using a tween counter
         const startX = this.x;

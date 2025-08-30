@@ -6,10 +6,38 @@ export default class BootScene extends Phaser.Scene {
     }
 
     preload() {
+        // Show loading text
+        const { width, height } = this.cameras.main;
+        this.loadingText = this.add.text(width / 2, height / 2, 'Loading...', {
+            fontSize: '24px',
+            fill: '#FFFFFF',
+            fontFamily: 'Arial'
+        });
+        this.loadingText.setOrigin(0.5);
+        
         // Create simple colored rectangles as placeholder sprites
         this.createDoveSprite();
         this.createGrassTexture();
         this.createTreeTexture();
+        
+        // Simple loading simulation
+        let progress = 0;
+        const progressTimer = this.time.addEvent({
+            delay: 100,
+            callback: () => {
+                progress += 10;
+                this.loadingText.setText(`Loading... ${progress}%`);
+                
+                if (progress >= 100) {
+                    progressTimer.destroy();
+                    this.loadingText.setText('Ready!');
+                    this.time.delayedCall(500, () => {
+                        this.scene.start('IntroScene');
+                    });
+                }
+            },
+            loop: true
+        });
     }
 
     createDoveSprite() {
@@ -108,7 +136,7 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
-        // Start the intro scene
-        this.scene.start('IntroScene');
+        // Scene will be started after loading is complete
+        // See the 'complete' event handler in preload()
     }
 }
