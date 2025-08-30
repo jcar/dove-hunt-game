@@ -308,11 +308,43 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         this.isHit = true;
         this.active = false;
         
-        // Change sprite appearance (darker/different color) - Graphics objects don't support setTint
-        // Instead, we'll change the alpha or recreate with darker colors
+        // Change sprite appearance (darker/different color)
         this.setAlpha(0.7);
         
-        // Stop horizontal movement, add falling physics
+        // Check if this will be the last bird hit in the level
+        const currentDovesHit = this.scene.dovesHit; // This is before we increment it
+        const dovesRequired = this.scene.dovesRequired;
+        const isLastBirdOfLevel = (currentDovesHit + 1) === dovesRequired;
+        
+        // Randomly select from all 4 death animations (including explosion)
+        let deathType = Phaser.Math.Between(0, 3); // 0-3 = 4 different death animations
+        
+        // If explosion was selected but this isn't the last bird, pick a different death
+        if (deathType === 3 && !isLastBirdOfLevel) {
+            deathType = Phaser.Math.Between(0, 2); // Pick from the other 3 deaths
+        }
+        
+        switch(deathType) {
+            case 0:
+                this.normalDeath();
+                break;
+            case 1:
+                this.helicopterDeath();
+                break;
+            case 2:
+                this.loopDeath();
+                break;
+            case 3:
+                this.explodeDeath();
+                break;
+        }
+        
+        // Create initial hit effect for all death types
+        this.createHitEffect();
+    }
+    
+    normalDeath() {
+        // Original death animation - dove falls with rotation
         this.body.setVelocity(Phaser.Math.Between(-50, 50), 0);
         this.body.setGravityY(300);
         
@@ -333,15 +365,174 @@ export default class Dove extends Phaser.GameObjects.Graphics {
             ease: 'Power2'
         });
         
-        // Create hit effect
-        this.createHitEffect();
-        
         // Remove dove after falling
         this.scene.time.delayedCall(2000, () => {
-            if (this.active !== undefined) { // Check if not already destroyed
+            if (this.active !== undefined) {
                 this.destroy();
             }
         });
+    }
+    
+    helicopterDeath() {
+        // Helicopter spinning death - dove spins rapidly while falling
+        this.body.setVelocity(Phaser.Math.Between(-30, 30), -20); // Start with slight upward momentum
+        this.body.setGravityY(200); // Slower fall for more comedic effect
+        
+        // Rapid helicopter-style spinning
+        this.scene.tweens.add({
+            targets: this,
+            angle: 360 * 8, // Spin 8 full rotations
+            duration: 2000,
+            ease: 'Linear'
+        });
+        
+        // Wobble side to side like a helicopter losing control
+        this.scene.tweens.add({
+            targets: this.body.velocity,
+            x: 100,
+            duration: 250,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: 7 // Wobble back and forth
+        });
+        
+        // Scale pulsing for extra effect
+        this.scene.tweens.add({
+            targets: this,
+            scaleX: 1.2,
+            scaleY: 1.2,
+            duration: 150,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1
+        });
+        
+        // Remove dove after helicopter fall
+        this.scene.time.delayedCall(2500, () => {
+            if (this.active !== undefined) {
+                this.destroy();
+            }
+        });
+    }
+    
+    explodeDeath() {
+        // Explosive death - dove disappears in a big explosion
+        this.body.setVelocity(0, 0); // Stop all movement
+        this.body.setGravityY(0); // No gravity for explosion
+        
+        // Flash effect before explosion
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 0,
+            duration: 50,
+            yoyo: true,
+            repeat: 3,
+            onComplete: () => {
+                // Big explosion effect
+                this.createExplosionEffect();
+                // Hide the dove immediately
+                this.setVisible(false);
+            }
+        });
+        
+        // Remove dove after explosion
+        this.scene.time.delayedCall(1000, () => {
+            if (this.active !== undefined) {
+                this.destroy();
+            }
+        });
+    }
+    
+    loopDeath() {
+        // Loop-de-loop death - dove does a crazy aerial loop before crashing
+        this.body.setVelocity(0, -150); // Strong upward momentum
+        this.body.setGravityY(0); // No gravity initially
+        
+        // Create the loop animation using a tween counter
+        const startX = this.x;
+        const startY = this.y;
+        const loopRadius = 80;
+        
+        this.scene.tweens.addCounter({
+            from: 0,
+            to: 360, // One full loop
+            duration: 1500,
+            ease: 'Sine.easeInOut',
+            onUpdate: (tween) => {
+                const angle = tween.getValue();
+                const radians = Phaser.Math.DegToRad(angle - 90); // Start at top
+                
+                // Create circular motion
+                this.x = startX + Math.cos(radians) * loopRadius;
+                this.y = startY - 100 + Math.sin(radians) * loopRadius; // Offset upward
+                
+                // Rotate the dove to follow the loop direction
+                this.rotation = radians + Math.PI/2;
+            },
+            onComplete: () => {
+                // After the loop, fall with gravity and spin
+                this.body.setGravityY(400);
+                this.body.setVelocity(Phaser.Math.Between(-50, 50), 50);
+                
+                // Dizzy spinning as it falls
+                this.scene.tweens.add({
+                    targets: this,
+                    rotation: this.rotation + (Math.PI * 6), // 3 more spins
+                    duration: 1500,
+                    ease: 'Power2.easeIn'
+                });
+                
+                // Scale down during fall
+                this.scene.tweens.add({
+                    targets: this,
+                    scaleX: 0.7,
+                    scaleY: 0.7,
+                    duration: 1000,
+                    ease: 'Power2'
+                });
+            }
+        });
+        
+        // Remove dove after the full sequence
+        this.scene.time.delayedCall(3500, () => {
+            if (this.active !== undefined) {
+                this.destroy();
+            }
+        });
+    }
+    
+    
+    createExplosionEffect() {
+        // Create big explosion with more particles
+        for (let i = 0; i < 20; i++) {
+            const particle = this.scene.add.graphics();
+            const colors = [0xff0000, 0xff8800, 0xffff00, 0xff4400, 0xffaa00];
+            particle.fillStyle(Phaser.Utils.Array.GetRandom(colors));
+            const size = Phaser.Math.Between(3, 8);
+            particle.fillCircle(0, 0, size);
+            particle.setPosition(this.x, this.y);
+            
+            // Random explosion direction
+            const angle = (Math.PI * 2 * i) / 20 + (Math.random() - 0.5) * 1.0;
+            const speed = 100 + Math.random() * 200;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            
+            // Animate explosion particle
+            this.scene.tweens.add({
+                targets: particle,
+                x: particle.x + vx,
+                y: particle.y + vy,
+                alpha: 0,
+                scale: 0,
+                duration: 800,
+                ease: 'Power2',
+                onComplete: () => particle.destroy()
+            });
+        }
+        
+        // Extra screen shake for explosion
+        this.scene.cameras.main.shake(200, 0.05);
     }
     
     createHitEffect() {

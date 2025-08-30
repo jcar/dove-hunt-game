@@ -335,9 +335,8 @@ export default class GameScene extends Phaser.Scene {
             this.doveSpawnTimer.destroy();
         }
         
-        // Calculate success - need to hit at least 50% of doves to progress
-        const hitPercentage = this.dovesHit / this.dovesRequired;
-        const success = hitPercentage >= 0.5;
+        // Calculate success - must hit ALL doves to progress to next level
+        const success = this.dovesHit === this.dovesRequired;
         
         // Calculate level completion bonuses
         const bonusScore = success ? this.calculateLevelBonus() : 0;
