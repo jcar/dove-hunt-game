@@ -85,12 +85,22 @@ class SimpleAudioManager {
     }
     
     playShot() {
+        // Enable audio immediately if not already enabled
+        if (!this.isAudioEnabled) {
+            this.enableAudio();
+        }
+        
         if (this.sounds.shot) {
             this.sounds.shot();
         }
     }
     
     playHit() {
+        // Enable audio immediately if not already enabled
+        if (!this.isAudioEnabled) {
+            this.enableAudio();
+        }
+        
         if (this.sounds.hit) {
             this.sounds.hit();
         }

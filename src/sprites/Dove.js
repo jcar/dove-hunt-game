@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
 
 export default class Dove extends Phaser.GameObjects.Graphics {
-    constructor(scene, x, y, speedMultiplier = 1.0, level = 1) {
-        // Start off-screen on the left
-        const startX = -50;
-        const startY = Phaser.Math.Between(100, 400);
+    constructor(scene, x, y, speedMultiplier = 1.0, level = 1, isWhiteDove = false, groupData = null) {
+        // Start off-screen on the left (or custom position for groups)
+        const startX = x || -50;
+        const startY = y || Phaser.Math.Between(100, 400);
         
         super(scene);
         
@@ -29,6 +29,8 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         this.active = true;
         this.isHit = false;
         this.level = level;
+        this.isWhiteDove = isWhiteDove;
+        this.groupData = groupData; // For formation flying
         this.flightPattern = this.selectFlightPattern(level); // Level-based flight pattern selection
         
         // Movement properties
@@ -45,6 +47,12 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         this.directionChangeCooldown = Phaser.Math.Between(60, 180); // Change direction every 1-3 seconds
         this.zigzagDirection = 1;
         this.erraticTimer = 0;
+        this.circleTimer = 0;
+        this.circleCenter = { x: 0, y: 0 };
+        this.shouldCircleBack = false;
+        this.formationOffset = { x: 0, y: 0 };
+        this.splitTimer = 0;
+        this.hasSplintered = false;
         
         // Set initial velocity based on flight pattern
         this.setupFlightPattern();
@@ -61,23 +69,46 @@ export default class Dove extends Phaser.GameObjects.Graphics {
     }
     
     createDoveGraphics() {
-        // Draw the exact same dove graphics as used in IntroScene directly on this Graphics object
+        // Draw dove graphics - white dove for bonus, grey for regular
         
-        // Main body (light grey)
-        this.fillStyle(0xE0E0E0);
-        this.fillEllipse(0, 0, 28, 16);
+        if (this.isWhiteDove) {
+            // White dove - smaller and brighter for bonus points
+            this.setScale(0.8); // Make white doves smaller
+            
+            // Main body (pure white)
+            this.fillStyle(0xFFFFFF);
+            this.fillEllipse(0, 0, 28, 16);
+            
+            // Body shading (very light grey)
+            this.fillStyle(0xF8F8F8);
+            this.fillEllipse(1, 1, 24, 12);
+        } else {
+            // Regular dove - same as before
+            // Main body (light grey)
+            this.fillStyle(0xE0E0E0);
+            this.fillEllipse(0, 0, 28, 16);
+            
+            // Body shading (darker grey)
+            this.fillStyle(0xD0D0D0);
+            this.fillEllipse(1, 1, 24, 12);
+        }
         
-        // Body shading (darker grey)
-        this.fillStyle(0xD0D0D0);
-        this.fillEllipse(1, 1, 24, 12);
-        
-        // Head (medium grey) - at the FRONT (right side)
-        this.fillStyle(0xE8E8E8);
-        this.fillCircle(10, -5, 8);
-        
-        // Head highlight
-        this.fillStyle(0xE0E0E0);
-        this.fillCircle(12, -6, 4);
+        // Head - at the FRONT (right side)
+        if (this.isWhiteDove) {
+            this.fillStyle(0xFFFFFF); // Pure white head
+            this.fillCircle(10, -5, 8);
+            
+            // Head highlight
+            this.fillStyle(0xF5F5F5);
+            this.fillCircle(12, -6, 4);
+        } else {
+            this.fillStyle(0xE8E8E8); // Medium grey head
+            this.fillCircle(10, -5, 8);
+            
+            // Head highlight
+            this.fillStyle(0xE0E0E0);
+            this.fillCircle(12, -6, 4);
+        }
         
         // Beak (dark grey) - pointing forward (right)
         this.fillStyle(0x666666);
@@ -89,21 +120,39 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         this.fillPath();
         
         // Wing with feather details - in the middle
-        this.fillStyle(0xC8C8C8);
-        this.fillEllipse(-2, -1, 18, 12);
-        
-        // Wing feather layers
-        this.fillStyle(0xB8B8B8);
-        this.fillEllipse(-6, 0, 14, 8);
-        this.fillEllipse(-9, 1, 10, 6);
-        
-        // Wing tips
-        this.fillStyle(0xA0A0A0);
-        this.fillEllipse(-12, 1, 6, 4);
-        
-        // Tail feathers - at the BACK (left side)
-        this.fillStyle(0xD0D0D0);
-        this.fillEllipse(-12, 0, 10, 6);
+        if (this.isWhiteDove) {
+            this.fillStyle(0xF0F0F0); // Light wing
+            this.fillEllipse(-2, -1, 18, 12);
+            
+            // Wing feather layers
+            this.fillStyle(0xE8E8E8);
+            this.fillEllipse(-6, 0, 14, 8);
+            this.fillEllipse(-9, 1, 10, 6);
+            
+            // Wing tips
+            this.fillStyle(0xE0E0E0);
+            this.fillEllipse(-12, 1, 6, 4);
+            
+            // Tail feathers - at the BACK (left side)
+            this.fillStyle(0xF8F8F8);
+            this.fillEllipse(-12, 0, 10, 6);
+        } else {
+            this.fillStyle(0xC8C8C8);
+            this.fillEllipse(-2, -1, 18, 12);
+            
+            // Wing feather layers
+            this.fillStyle(0xB8B8B8);
+            this.fillEllipse(-6, 0, 14, 8);
+            this.fillEllipse(-9, 1, 10, 6);
+            
+            // Wing tips
+            this.fillStyle(0xA0A0A0);
+            this.fillEllipse(-12, 1, 6, 4);
+            
+            // Tail feathers - at the BACK (left side)
+            this.fillStyle(0xD0D0D0);
+            this.fillEllipse(-12, 0, 10, 6);
+        }
         
         // Eye
         this.fillStyle(0x000000);
@@ -114,8 +163,19 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         this.fillCircle(13, -7, 0.6);
         
         // Neck definition
-        this.fillStyle(0xD8D8D8);
-        this.fillEllipse(6, -2, 6, 4);
+        if (this.isWhiteDove) {
+            this.fillStyle(0xF8F8F8);
+            this.fillEllipse(6, -2, 6, 4);
+        } else {
+            this.fillStyle(0xD8D8D8);
+            this.fillEllipse(6, -2, 6, 4);
+        }
+        
+        // Add special glow effect for white doves
+        if (this.isWhiteDove) {
+            this.lineStyle(2, 0xFFFFAA, 0.3);
+            this.strokeCircle(0, 0, 35);
+        }
     }
     
     selectFlightPattern(level) {

@@ -31,7 +31,7 @@ export default class IntroScene extends Phaser.Scene {
         title.setOrigin(0.5);
 
         // Subtitle
-        const subtitle = this.add.text(width / 2, height / 3 + 60, '10 Challenging Levels!', {
+        const subtitle = this.add.text(width / 2, height / 3 + 60, '25 Challenging Levels!', {
             fontSize: '20px',
             fill: '#FFFFFF',
             fontFamily: 'Arial'

@@ -26,17 +26,6 @@
             background-color: #000;
         }
 
-        #game-info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            font-size: 14px;
-            z-index: 1000;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-        }
 
         .instructions {
             position: absolute;
@@ -72,15 +61,6 @@
                 width: 100%;
             }
             
-            #game-info {
-                font-size: 12px;
-                padding: 8px;
-                top: 5px;
-                left: 5px;
-                right: 5px;
-                width: auto;
-                text-align: center;
-            }
             
             .instructions {
                 font-size: 10px;
@@ -99,10 +79,6 @@
         
         /* Portrait mobile */
         @media (max-width: 480px) and (orientation: portrait) {
-            #game-info {
-                position: static;
-                margin-bottom: 10px;
-            }
             
             .instructions {
                 position: static;
@@ -123,18 +99,13 @@
     </style>
 </head>
 <body>
-    <div id="game-info">
-        <div>Score: <span id="score">0</span></div>
-        <div>Doves Hit: <span id="doves-hit">0/1</span></div>
-        <div>Shots Left: <span id="shots-left">3</span></div>
-    </div>
     
     <div id="game-container">
         <!-- Phaser will create the canvas here -->
     </div>
     
     <div class="instructions">
-        🎯 Click to shoot! • Space to reload • R to return to menu • 10 Levels of Challenge!
+        🎯 Click to shoot! • Space to reload • R to return to menu • 25 Levels of Challenge!
     </div>
     
     <script type="module" src="/src/main.js"></script>

@@ -65,8 +65,10 @@ export default class GameScene extends Phaser.Scene {
         
         // Level indicator - adjust size and position for mobile
         const levelFontSize = this.isMobile ? '18px' : '24px';
+        const scoreFontSize = this.isMobile ? '16px' : '20px';
         const levelX = this.isMobile ? width / 2 : 20;
         const levelY = this.isMobile ? 15 : 20;
+        const scoreY = this.isMobile ? 35 : 45;
         
         this.levelText = this.add.text(levelX, levelY, `LEVEL ${this.level}`, {
             fontSize: levelFontSize,
@@ -76,11 +78,22 @@ export default class GameScene extends Phaser.Scene {
             strokeThickness: 2
         });
         
+        // Score display under level indicator
+        this.scoreText = this.add.text(levelX, scoreY, `SCORE: ${this.score}`, {
+            fontSize: scoreFontSize,
+            fill: '#00FF00',
+            fontFamily: 'Arial Bold',
+            stroke: '#000000',
+            strokeThickness: 2
+        });
+        
         if (this.isMobile) {
             this.levelText.setOrigin(0.5, 0);
+            this.scoreText.setOrigin(0.5, 0);
         }
         
         this.levelText.setDepth(1000);
+        this.scoreText.setDepth(1000);
         
         // Set up input
         this.setupInput();
@@ -207,33 +220,65 @@ export default class GameScene extends Phaser.Scene {
     }
 
     spawnDoves() {
-        const spawnInterval = Math.max(1000, 3000 - (this.level * 200)); // Faster spawning at higher levels
+        // Use the new spawn delay from level config
+        const spawnInterval = this.levelConfig.spawnDelay;
         
         // Spawn doves over time
         this.doveSpawnTimer = this.time.addEvent({
             delay: spawnInterval,
             callback: () => {
                 if (this.dovesSpawned < this.dovesRequired) {
-                    this.spawnDove();
+                    this.spawnDoveGroup();
                 }
             },
             callbackScope: this,
             loop: true
         });
         
-        // Spawn first dove immediately
-        this.spawnDove();
+        // Spawn first dove/group immediately
+        this.spawnDoveGroup();
     }
 
-    spawnDove() {
+    spawnDoveGroup() {
         if (this.dovesSpawned >= this.dovesRequired) {
             return;
         }
         
-        const dove = new Dove(this, 0, 0, this.levelConfig.speedMultiplier, this.level);
-        this.doves.push(dove);
-        this.doveGroup.add(dove);
-        this.dovesSpawned++;
+        // Determine if this should be a group spawn
+        const shouldSpawnGroup = Math.random() < this.levelConfig.groupSpawnChance;
+        const remainingDoves = this.dovesRequired - this.dovesSpawned;
+        
+        // Determine group size (1 for single, or 2-4 for groups based on level)
+        let groupSize;
+        if (!shouldSpawnGroup || remainingDoves === 1) {
+            groupSize = 1;
+        } else {
+            groupSize = Math.min(remainingDoves, Phaser.Math.Between(2, Math.min(4, this.levelConfig.doveCount)));
+        }
+        
+        // Spawn the group
+        const groupStartY = Phaser.Math.Between(100, 400);
+        
+        for (let i = 0; i < groupSize; i++) {
+            if (this.dovesSpawned >= this.dovesRequired) break;
+            
+            // Determine if this dove should be white
+            const isWhiteDove = Math.random() < this.levelConfig.whiteDoveChance;
+            
+            // Position doves in formation for groups
+            const startX = -50 - (i * 30); // Stagger horizontally
+            const startY = groupSize > 1 ? groupStartY + (i * 20) - ((groupSize - 1) * 10) : groupStartY; // Stagger vertically
+            
+            const dove = new Dove(this, startX, startY, this.levelConfig.speedMultiplier, this.level, isWhiteDove, {
+                groupId: this.dovesSpawned,
+                groupSize: groupSize,
+                groupIndex: i
+            });
+            
+            this.doves.push(dove);
+            this.doveGroup.add(dove);
+            this.dovesSpawned++;
+        }
         
         this.updateUI();
     }
@@ -273,7 +318,7 @@ export default class GameScene extends Phaser.Scene {
                 }
                 
                 // Calculate score based on accuracy and level difficulty
-                const baseScore = this.calculateHitScore();
+                const baseScore = this.calculateHitScore(dove.isWhiteDove);
                 this.score += baseScore;
                 this.dovesHit++;
                 this.gameStats.totalDoves++;
@@ -308,35 +353,52 @@ export default class GameScene extends Phaser.Scene {
     }
 
     reload() {
-        this.shotsLeft = 3;
+        this.shotsLeft = this.levelConfig.shotsPerRound; // Use dynamic shots per round
         this.updateUI();
     }
 
     checkLevelEnd() {
+        // Don't check anything if we're already completing the level
+        if (this.levelCompleting) {
+            return;
+        }
+        
         // Check if all doves have been spawned and none are active
         const activeDoves = this.doves.filter(dove => dove.active);
         const allDovesSpawned = this.dovesSpawned >= this.dovesRequired;
         
-        // Don't end level immediately - let dove fall animation play
+        // Priority 1: Check if we've hit all required doves (success condition)
+        if (this.dovesHit >= this.dovesRequired) {
+            // Level success! Complete regardless of shots left or active doves
+            this.levelCompleting = true;
+            
+            // Wait 3 seconds to let dove fall animations play and player celebrate
+            this.time.delayedCall(3000, () => {
+                this.completeLevel();
+            });
+            return;
+        }
+        
+        // Priority 2: Check if all doves spawned and none active (also success if we hit enough)
         if (allDovesSpawned && activeDoves.length === 0) {
-            // Only complete level if we haven't already started the completion process
-            if (!this.levelCompleting) {
-                this.levelCompleting = true;
-                
-                // Wait 3 seconds to let dove fall animations play and player celebrate
-                this.time.delayedCall(3000, () => {
-                    this.completeLevel();
-                });
-            }
-        } else if (this.shotsLeft <= 0 && activeDoves.length > 0) {
-            // Game over - ran out of shots with doves still active
-            if (!this.levelCompleting) {
-                this.levelCompleting = true;
-                // Also add a small delay for game over to let final shot animation play
-                this.time.delayedCall(1500, () => {
-                    this.gameOver();
-                });
-            }
+            // All doves gone - complete the level
+            this.levelCompleting = true;
+            
+            // Wait 3 seconds to let dove fall animations play and player celebrate
+            this.time.delayedCall(3000, () => {
+                this.completeLevel();
+            });
+            return;
+        }
+        
+        // Priority 3: Only check for game over if we're out of shots AND have active doves AND haven't hit enough
+        if (this.shotsLeft <= 0 && activeDoves.length > 0 && this.dovesHit < this.dovesRequired) {
+            // Game over - ran out of shots with doves still active and didn't hit enough
+            this.levelCompleting = true;
+            // Also add a small delay for game over to let final shot animation play
+            this.time.delayedCall(1500, () => {
+                this.gameOver();
+            });
         }
     }
 
@@ -358,7 +420,7 @@ export default class GameScene extends Phaser.Scene {
         this.totalDovesHit += this.dovesHit;
         
         if (success) {
-            if (this.level >= 10) {
+            if (this.level >= 25) {
                 // Game complete! Calculate final bonus and statistics
                 if (this.dovesHit === this.dovesRequired) {
                     this.gameStats.perfectLevels++;
@@ -416,9 +478,14 @@ export default class GameScene extends Phaser.Scene {
         this.scene.start('IntroScene');
     }
     
-    calculateHitScore() {
+    calculateHitScore(isWhiteDove = false) {
         // Base score increases with level difficulty
-        const baseScore = 100 + (this.level * 50); // 150 pts level 1, up to 600 pts level 10
+        let baseScore = 100 + (this.level * 25); // 125 pts level 1, up to 725 pts level 25
+        
+        // White dove bonus - worth 3x more points and smaller/faster
+        if (isWhiteDove) {
+            baseScore *= 3; // Triple points for white doves
+        }
         
         // Accuracy bonus based on shots remaining
         let accuracyMultiplier = 1.0;
@@ -444,7 +511,7 @@ export default class GameScene extends Phaser.Scene {
         
         // Perfect accuracy bonus
         if (perfectAccuracy) {
-            bonus += 500 + (this.level * 100); // 600 pts level 1, up to 1500 pts level 10
+            bonus += 500 + (this.level * 50); // 550 pts level 1, up to 1750 pts level 25
         }
         
         // Efficiency bonus for unused shots
@@ -465,32 +532,84 @@ export default class GameScene extends Phaser.Scene {
     }
     
     getLevelConfig(level) {
-        // All levels have exactly 2 doves, difficulty comes from speed
-        const configs = {
-            1: { doveCount: 2, speedMultiplier: 1.0, shotsPerRound: 3 },
-            2: { doveCount: 2, speedMultiplier: 1.1, shotsPerRound: 3 },
-            3: { doveCount: 2, speedMultiplier: 1.2, shotsPerRound: 3 },
-            4: { doveCount: 2, speedMultiplier: 1.3, shotsPerRound: 3 },
-            5: { doveCount: 2, speedMultiplier: 1.4, shotsPerRound: 3 },
-            6: { doveCount: 2, speedMultiplier: 1.5, shotsPerRound: 3 },
-            7: { doveCount: 2, speedMultiplier: 1.6, shotsPerRound: 3 },
-            8: { doveCount: 2, speedMultiplier: 1.7, shotsPerRound: 3 },
-            9: { doveCount: 2, speedMultiplier: 1.8, shotsPerRound: 3 },
-            10: { doveCount: 2, speedMultiplier: 2.0, shotsPerRound: 3 }
-        };
-
-        return configs[level] || { doveCount: 2, speedMultiplier: 2.0, shotsPerRound: 3 };
+        // Progressive difficulty system based on your specification
+        
+        // 🌱 Levels 1–5: Learning the Flight
+        if (level <= 5) {
+            const doveCount = level <= 2 ? 1 : 2; // Single dove for first two levels, then pairs
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 0.8 + (level * 0.1), // 0.9 to 1.3 - slow, floating takeoffs
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: level >= 3 ? 0.3 : 0, // 30% chance of pairs from level 3+
+                whiteDoveChance: 0, // No white doves in learning levels
+                spawnDelay: 3000 - (level * 200), // 3s to 2s spawn intervals
+                description: "Learning the Flight - Calm morning doves"
+            };
+        }
+        
+        // 🌿 Levels 6–10: Quick Flutters  
+        else if (level <= 10) {
+            const doveCount = 2;
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 1.2 + ((level - 5) * 0.15), // 1.35 to 1.95 - faster with bursts
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 0.6, // 60% chance of doubles
+                whiteDoveChance: 0.05, // 5% chance of white dove
+                spawnDelay: 2000 - ((level - 5) * 100), // 2s to 1.5s intervals
+                description: "Quick Flutters - Doves flushing from tree line"
+            };
+        }
+        
+        // 🌾 Levels 11–15: Erratic Scatters
+        else if (level <= 15) {
+            const doveCount = 2 + Math.floor((level - 10) / 2); // 2-4 doves, increasing
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 1.8 + ((level - 10) * 0.1), // 1.9 to 2.3 - much quicker
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 0.8, // 80% chance of groups
+                whiteDoveChance: 0.1, // 10% chance of white dove
+                spawnDelay: 1500 - ((level - 10) * 50), // 1.5s to 1.25s intervals
+                description: "Erratic Scatters - Spooked flock chaos"
+            };
+        }
+        
+        // 🌳 Levels 16–20: Flock & Frenzy
+        else if (level <= 20) {
+            const doveCount = 3 + Math.floor((level - 15) / 2); // 3-5 doves
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 2.2 + ((level - 15) * 0.15), // 2.35 to 2.95 - very fast
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 0.9, // 90% chance of flocks
+                whiteDoveChance: 0.15, // 15% chance of white dove
+                spawnDelay: 1200 - ((level - 15) * 30), // 1.2s to 1.05s intervals
+                description: "Flock & Frenzy - Sunflower field chaos"
+            };
+        }
+        
+        // 🌌 Levels 21+: Expert Dove Mastery
+        else {
+            const doveCount = Math.min(5 + Math.floor((level - 20) / 2), 8); // 5-8 doves max
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 2.8 + ((level - 20) * 0.1), // 2.9+ - max velocity
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 1.0, // Always large flocks
+                whiteDoveChance: 0.2, // 20% chance of white dove
+                spawnDelay: Math.max(800, 1000 - ((level - 20) * 20)), // Down to 800ms minimum
+                description: "Expert Mastery - Chaotic mixed-speed flocks"
+            };
+        }
     }
 
     updateUI() {
-        // Update HTML elements
-        const scoreEl = document.getElementById('score');
-        const dovesHitEl = document.getElementById('doves-hit');
-        const shotsLeftEl = document.getElementById('shots-left');
-        
-        if (scoreEl) scoreEl.textContent = this.score;
-        if (dovesHitEl) dovesHitEl.textContent = `${this.dovesHit}/${this.dovesRequired}`;
-        if (shotsLeftEl) shotsLeftEl.textContent = this.shotsLeft;
+        // Update the in-game score display
+        if (this.scoreText) {
+            this.scoreText.setText(`SCORE: ${this.score}`);
+        }
     }
 
     update() {
