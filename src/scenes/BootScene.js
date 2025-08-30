@@ -13,31 +13,70 @@ export default class BootScene extends Phaser.Scene {
     }
 
     createDoveSprite() {
-        // Create a simple dove sprite using graphics
+        // Create a more iconic dove sprite using graphics
         const graphics = this.add.graphics();
         
-        // Dove body (darker gray)
-        graphics.fillStyle(0x808080);
-        graphics.fillEllipse(0, 0, 40, 25);
+        // Main body (light pearl gray)
+        graphics.fillStyle(0xF5F5F5);
+        graphics.fillEllipse(0, 0, 32, 20);
         
-        // Dove head (medium gray)
-        graphics.fillStyle(0x909090);
-        graphics.fillCircle(-15, -8, 12);
+        // Body shading (slightly darker)
+        graphics.fillStyle(0xE8E8E8);
+        graphics.fillEllipse(2, 2, 28, 16);
         
-        // Dove beak (dark gray)
-        graphics.fillStyle(0x505050);
-        graphics.fillTriangle(-25, -8, -30, -5, -25, -2);
+        // Head (pure white)
+        graphics.fillStyle(0xFFFFFF);
+        graphics.fillCircle(-12, -6, 10);
         
-        // Dove wing (darker silver)
-        graphics.fillStyle(0x707070);
-        graphics.fillEllipse(5, 0, 25, 15);
+        // Head highlight
+        graphics.fillStyle(0xF8F8F8);
+        graphics.fillCircle(-10, -8, 6);
         
-        // Eye (black dot)
+        // Beak (orange-yellow)
+        graphics.fillStyle(0xFFA500);
+        graphics.beginPath();
+        graphics.moveTo(-20, -6);
+        graphics.lineTo(-24, -4);
+        graphics.lineTo(-20, -2);
+        graphics.closePath();
+        graphics.fillPath();
+        
+        // Wing (detailed feathering)
+        graphics.fillStyle(0xDDDDDD);
+        graphics.fillEllipse(3, -2, 22, 14);
+        
+        // Wing feather details
+        graphics.fillStyle(0xCCCCCC);
+        graphics.fillEllipse(8, -1, 16, 10);
+        graphics.fillEllipse(12, 1, 12, 8);
+        
+        // Wing tips (darker)
+        graphics.fillStyle(0xAAAAAA);
+        graphics.fillEllipse(15, 2, 8, 6);
+        
+        // Tail feathers
+        graphics.fillStyle(0xE0E0E0);
+        graphics.fillEllipse(14, 0, 12, 8);
+        
+        // Tail feather separation
+        graphics.fillStyle(0xD0D0D0);
+        graphics.fillRect(16, -2, 1, 4);
+        graphics.fillRect(19, -1, 1, 2);
+        
+        // Eye (black with small highlight)
         graphics.fillStyle(0x000000);
-        graphics.fillCircle(-18, -10, 2);
+        graphics.fillCircle(-15, -8, 2);
+        
+        // Eye highlight
+        graphics.fillStyle(0xFFFFFF);
+        graphics.fillCircle(-14, -9, 0.8);
+        
+        // Neck definition
+        graphics.fillStyle(0xF0F0F0);
+        graphics.fillEllipse(-8, -3, 8, 6);
 
         // Generate texture from graphics
-        graphics.generateTexture('dove', 50, 30);
+        graphics.generateTexture('dove', 55, 35);
         graphics.destroy();
     }
 

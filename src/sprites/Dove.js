@@ -12,8 +12,8 @@ export default class Dove extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
         
-        // Set physics properties
-        this.body.setSize(40, 25);
+        // Set physics properties (updated for new sprite size)
+        this.body.setSize(45, 28);
         this.body.setCollideWorldBounds(false);
         
         // Dove state
@@ -47,8 +47,14 @@ export default class Dove extends Phaser.Physics.Arcade.Sprite {
         this.flapTimer = 0;
         this.originalScale = 1;
         
-        // Set random tint for variety
-        const tints = [0xffffff, 0xffdddd, 0xddffdd, 0xddddff];
+        // Set random tint for variety - subtle variations that work well with white dove
+        const tints = [
+            0xffffff, // Pure white (classic dove)
+            0xf8f8ff, // Ghost white (slightly blue)
+            0xf5f5f5, // White smoke (slightly gray)
+            0xfaf0e6, // Linen (slightly cream)
+            0xfff8dc  // Cornsilk (slightly yellow)
+        ];
         this.setTint(Phaser.Utils.Array.GetRandom(tints));
     }
     

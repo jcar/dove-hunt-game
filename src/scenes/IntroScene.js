@@ -57,6 +57,9 @@ export default class IntroScene extends Phaser.Scene {
             repeat: -1
         });
 
+        // Add flying dove for visual appeal
+        this.createFlyingDove();
+        
         // Input handlers (use on instead of once to ensure they work after scene restart)
         this.input.on('pointerdown', () => {
             if (!this.animationStarted) {
@@ -164,15 +167,59 @@ export default class IntroScene extends Phaser.Scene {
         // Create an animated dove that flies across the screen
         const dove = this.add.graphics();
         
-        // Draw dove (darker colors)
-        dove.fillStyle(0x808080);
-        dove.fillEllipse(0, 0, 30, 18);
-        dove.fillStyle(0x909090);
-        dove.fillCircle(-12, -6, 8);
-        dove.fillStyle(0x505050);
-        dove.fillTriangle(-18, -6, -22, -4, -18, -2);
+        // Main body (light pearl gray)
+        dove.fillStyle(0xF5F5F5);
+        dove.fillEllipse(0, 0, 28, 16);
+        
+        // Body shading
+        dove.fillStyle(0xE8E8E8);
+        dove.fillEllipse(1, 1, 24, 12);
+        
+        // Head (pure white)
+        dove.fillStyle(0xFFFFFF);
+        dove.fillCircle(-10, -5, 8);
+        
+        // Head highlight
+        dove.fillStyle(0xF8F8F8);
+        dove.fillCircle(-8, -6, 4);
+        
+        // Beak (orange-yellow)
+        dove.fillStyle(0xFFA500);
+        dove.beginPath();
+        dove.moveTo(-16, -5);
+        dove.lineTo(-20, -3);
+        dove.lineTo(-16, -1);
+        dove.closePath();
+        dove.fillPath();
+        
+        // Wing with feather details
+        dove.fillStyle(0xDDDDDD);
+        dove.fillEllipse(2, -1, 18, 12);
+        
+        // Wing feather layers
+        dove.fillStyle(0xCCCCCC);
+        dove.fillEllipse(6, 0, 14, 8);
+        dove.fillEllipse(9, 1, 10, 6);
+        
+        // Wing tips
+        dove.fillStyle(0xAAAAAA);
+        dove.fillEllipse(12, 1, 6, 4);
+        
+        // Tail feathers
+        dove.fillStyle(0xE0E0E0);
+        dove.fillEllipse(12, 0, 10, 6);
+        
+        // Eye
         dove.fillStyle(0x000000);
-        dove.fillCircle(-14, -8, 1.5);
+        dove.fillCircle(-12, -6, 1.5);
+        
+        // Eye highlight
+        dove.fillStyle(0xFFFFFF);
+        dove.fillCircle(-11, -7, 0.6);
+        
+        // Neck definition
+        dove.fillStyle(0xF0F0F0);
+        dove.fillEllipse(-6, -2, 6, 4);
 
         // Start position
         dove.setPosition(-50, 150);
@@ -189,11 +236,21 @@ export default class IntroScene extends Phaser.Scene {
             }
         });
 
-        // Wing flapping
+        // Wing flapping animation
         this.tweens.add({
             targets: dove,
-            scaleY: 0.7,
-            duration: 200,
+            scaleY: 0.8,
+            duration: 300,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1
+        });
+        
+        // Subtle body movement for more realistic flight
+        this.tweens.add({
+            targets: dove,
+            angle: 2,
+            duration: 600,
             ease: 'Sine.easeInOut',
             yoyo: true,
             repeat: -1
