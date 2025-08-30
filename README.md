@@ -1,22 +1,22 @@
-# Duck Hunt Game 🦆🎯
+# Dove Hunt 🕊️🎯
 
-A classic Duck Hunt game recreation built with Phaser.js for mouse and keyboard controls!
+A dove hunting game that starts easy and gets crazy fast. Built this with Phaser.js to capture the feel of those early morning dove shoots.
 
-## 🎮 How to Play
+## 🎮 Controls
 
-- **Aim**: Move your mouse to aim the crosshair
-- **Shoot**: Click the left mouse button to shoot
-- **Reload**: Press the **Space** key to reload (get 3 more shots)
-- **Restart**: Press **R** to restart the game
+- **Aim**: Move your mouse around
+- **Shoot**: Click to fire
+- **Reload**: Hit spacebar when you run out of shells
+- **Restart**: Press R if you want to start over
 
-## 🎯 Game Rules
+## 🎯 How It Works
 
-- **10 challenging levels** with increasing difficulty
-- You have **3 shots** per level
-- Hit ducks to score **100 points** each
-- Must hit **50% or more** of the ducks in each level to progress
-- Ducks fly faster and spawn more frequently in higher levels
-- Ducks fly in different patterns: straight, wave, and diagonal
+- **25 levels** that progress from easy single birds to absolute chaos
+- Shot count scales with bird count - you get 3 shots per 2 birds (so 6 birds = 9 shots)
+- Score increases with level difficulty and accuracy
+- Hit **all the birds** in a level to advance
+- White doves are worth 3x points but they're smaller and faster
+- Birds get faster and fly in groups as you progress
 
 ## 🚀 Setup & Development
 
@@ -26,23 +26,14 @@ A classic Duck Hunt game recreation built with Phaser.js for mouse and keyboard 
 
 ### Installation
 
-1. Clone or download this project
-2. Navigate to the project directory:
-   ```bash
-   cd duck-hunt-game
-   ```
+```bash
+git clone https://github.com/jcar/dove-hunt-game.git
+cd dove-hunt-game
+npm install
+npm run dev
+```
 
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open your browser to `http://localhost:5173`
+Then open `http://localhost:5173` in your browser.
 
 ### Build for Production
 
@@ -52,67 +43,79 @@ npm run build
 
 The built files will be in the `dist/` directory.
 
-## 🎨 Features
+## 🎨 What's Cool About It
 
-- **10 Level Campaign**: Progressively challenging levels with increasing difficulty
-- **Procedural Graphics**: All sprites are generated programmatically (no external image files needed)
-- **Multiple Flight Patterns**: Ducks fly in straight lines, waves, or diagonal patterns
-- **Visual Effects**: Muzzle flash, particle effects when ducks are hit, screen shake
-- **Dynamic Difficulty**: Speed multipliers, duck counts, and spawn rates increase per level
-- **Responsive Controls**: Both mouse and keyboard controls
-- **Level Progression**: Must achieve 50% hit rate to advance to next level
-- **Attractive UI**: Intro screen, level transitions, game over, and victory screens
+- **25 levels** that actually feel different - starts with calm morning doves, ends with flock chaos
+- **No image files** - everything's drawn with code so it loads instantly
+- **Realistic progression** - mimics how real dove hunting gets intense when you spook a whole field
+- **Group flying** - birds fly in formations and split apart mid-flight
+- **White dove bonus birds** - rare, fast, worth triple points
+- **Smart difficulty** - more birds means more shots, but they're harder to hit
+- **Clean interface** - just you, the birds, and your score
 
 ## 🛠️ Project Structure
 
 ```
 src/
-├── main.js           # Game entry point and configuration
+├── main.js              # Game setup
 ├── scenes/
-│   ├── BootScene.js         # Asset loading and sprite generation
-│   ├── IntroScene.js        # Title screen and main menu
-│   ├── GameScene.js         # Main gameplay scene with level system
-│   └── LevelTransitionScene.js # Level transitions, game over, victory
-└── sprites/
-    └── Duck.js       # Duck sprite class with physics and speed scaling
+│   ├── BootScene.js     # Loading screen
+│   ├── IntroScene.js    # Title screen
+│   ├── GameScene.js     # Main game
+│   └── LevelTransitionScene.js # Between levels
+├── sprites/
+│   └── Dove.js          # Bird behavior and animations
+└── audio/
+    └── SimpleAudioManager.js # Sound effects
 ```
 
-## 🎵 Game Mechanics
+## 🎯 The Progression
 
-- **10-Level Campaign**: Each level has specific duck counts and speed multipliers
-- **Success Criteria**: Must hit 50% or more ducks to advance to the next level
-- **Duck AI**: Ducks have randomized flight patterns and occasionally change direction
-- **Adaptive Difficulty**: Duck speed increases from 1.0x in Level 1 to 2.0x in Level 10
-- **Progressive Challenge**: Duck counts increase from 1 in Level 1 to 6 in Level 10
-- **Hit Detection**: Precise collision detection based on mouse click position
-- **Physics**: Realistic falling animation when ducks are hit
+**Learning the Flight (Levels 1-5)**
+Single birds, slow and predictable. Like shooting doves off a fence post.
 
-## 🔧 Technologies Used
+**Quick Flutters (Levels 6-10)**
+Pairs of birds, faster movement. They're flushing from the tree line now.
 
-- **Phaser.js 3**: Game development framework
-- **Vite**: Build tool and development server
-- **JavaScript ES6+**: Modern JavaScript features
-- **HTML5 Canvas**: Rendering engine
+**Erratic Scatters (Levels 11-15)**
+Small groups, unpredictable flight. You spooked the flock.
 
-## 🎯 Future Enhancements
+**Flock & Frenzy (Levels 16-20)**
+Large groups, very fast. Full sunflower field chaos.
 
-Possible additions you could make:
-- Sound effects and background music
-- Different duck types with varying point values
-- Power-ups (rapid fire, larger crosshair, etc.)
-- High score saving
-- Multiple backgrounds/environments
-- Mobile touch controls
+**Expert Mastery (Levels 21-25)**
+Massive flocks with mixed speeds. Some slow floaters, some lightning fast. Good luck.
 
-## 🏆 Level Progression
+White doves start showing up around level 6 - they're worth hunting but harder to hit.
 
-| Level | Ducks | Speed | Challenge |
-|-------|-------|-------|----------|
-| 1     | 1     | 1.0x  | Tutorial |
-| 2-3   | 2     | 1.1-1.2x | Easy |
-| 4-5   | 3     | 1.3-1.4x | Medium |
-| 6-7   | 4     | 1.5-1.6x | Hard |
-| 8-9   | 5     | 1.7-1.8x | Expert |
-| 10    | 6     | 2.0x  | Master |
+## 🔧 Built With
 
-Enjoy hunting those ducks through all 10 challenging levels! 🦆🏆
+- **Phaser.js 3** for the game engine
+- **Vite** for fast development and building
+- **Vanilla JavaScript** - no fancy frameworks needed
+- **Web Audio API** for the sound effects
+
+## 🚀 Ideas for Later
+
+- Different environments (field edges, sunflower fields, stock tanks)
+- Weather effects (wind affecting flight patterns)
+- Time of day progression
+- Different dove species with unique behaviors
+- Decoy placement strategy
+- Shell type selection (different spread patterns)
+
+## 🏆 Level Breakdown
+
+| Levels | Birds | Speed | What It Feels Like |
+|--------|-------|-------|--------------------|
+| 1-5    | 1-2   | 0.9-1.3x | Morning perch shots |
+| 6-10   | 2     | 1.4-2.0x | Tree line flush |
+| 11-15  | 2-4   | 1.9-2.3x | Scattered flock |
+| 16-20  | 3-5   | 2.4-3.0x | Field chaos |
+| 21-25  | 5-8   | 2.9-3.2x+ | Total mayhem |
+
+If you make it past level 20, you're either really good or really lucky. 🕊️
+
+---
+
+*Built this because I missed those September dove shoots. The real thing's better, but this scratches the itch.*
