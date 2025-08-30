@@ -1,20 +1,29 @@
 import Phaser from 'phaser';
 
-export default class Dove extends Phaser.Physics.Arcade.Sprite {
+export default class Dove extends Phaser.GameObjects.Graphics {
     constructor(scene, x, y, speedMultiplier = 1.0, level = 1) {
         // Start off-screen on the left
         const startX = -50;
         const startY = Phaser.Math.Between(100, 400);
         
-        super(scene, startX, startY, 'dove');
+        super(scene);
+        
+        // Set position
+        this.setPosition(startX, startY);
+        
+        // Create dove graphics directly - exactly like intro screen
+        this.createDoveGraphics();
         
         // Add to scene
         scene.add.existing(this);
         scene.physics.add.existing(this);
         
-        // Set physics properties (updated for new sprite size)
-        this.body.setSize(45, 28);
+        // Set physics properties (updated for proper dove sprite size)
+        // Graphics objects need explicit bounds for physics
+        this.body.setSize(50, 30); // Match the graphics size
+        this.body.setOffset(-25, -15); // Center the physics body
         this.body.setCollideWorldBounds(false);
+        
         
         // Dove state
         this.active = true;
@@ -47,15 +56,66 @@ export default class Dove extends Phaser.Physics.Arcade.Sprite {
         this.flapTimer = 0;
         this.originalScale = 1;
         
-        // Set random tint for variety - subtle variations that work well with white dove
-        const tints = [
-            0xffffff, // Pure white (classic dove)
-            0xf8f8ff, // Ghost white (slightly blue)
-            0xf5f5f5, // White smoke (slightly gray)
-            0xfaf0e6, // Linen (slightly cream)
-            0xfff8dc  // Cornsilk (slightly yellow)
-        ];
-        this.setTint(Phaser.Utils.Array.GetRandom(tints));
+        // Use the base dove texture without additional tinting to match intro screen exactly
+        // The dove texture already has the proper grey coloration
+    }
+    
+    createDoveGraphics() {
+        // Draw the exact same dove graphics as used in IntroScene directly on this Graphics object
+        
+        // Main body (light grey)
+        this.fillStyle(0xE0E0E0);
+        this.fillEllipse(0, 0, 28, 16);
+        
+        // Body shading (darker grey)
+        this.fillStyle(0xD0D0D0);
+        this.fillEllipse(1, 1, 24, 12);
+        
+        // Head (medium grey) - at the FRONT (right side)
+        this.fillStyle(0xE8E8E8);
+        this.fillCircle(10, -5, 8);
+        
+        // Head highlight
+        this.fillStyle(0xE0E0E0);
+        this.fillCircle(12, -6, 4);
+        
+        // Beak (dark grey) - pointing forward (right)
+        this.fillStyle(0x666666);
+        this.beginPath();
+        this.moveTo(16, -5);
+        this.lineTo(20, -3);
+        this.lineTo(16, -1);
+        this.closePath();
+        this.fillPath();
+        
+        // Wing with feather details - in the middle
+        this.fillStyle(0xC8C8C8);
+        this.fillEllipse(-2, -1, 18, 12);
+        
+        // Wing feather layers
+        this.fillStyle(0xB8B8B8);
+        this.fillEllipse(-6, 0, 14, 8);
+        this.fillEllipse(-9, 1, 10, 6);
+        
+        // Wing tips
+        this.fillStyle(0xA0A0A0);
+        this.fillEllipse(-12, 1, 6, 4);
+        
+        // Tail feathers - at the BACK (left side)
+        this.fillStyle(0xD0D0D0);
+        this.fillEllipse(-12, 0, 10, 6);
+        
+        // Eye
+        this.fillStyle(0x000000);
+        this.fillCircle(12, -6, 1.5);
+        
+        // Eye highlight
+        this.fillStyle(0xFFFFFF);
+        this.fillCircle(13, -7, 0.6);
+        
+        // Neck definition
+        this.fillStyle(0xD8D8D8);
+        this.fillEllipse(6, -2, 6, 4);
     }
     
     selectFlightPattern(level) {
@@ -163,6 +223,7 @@ export default class Dove extends Phaser.Physics.Arcade.Sprite {
             this.body.setVelocityY(-Math.abs(this.body.velocity.y) - Phaser.Math.Between(10, 30));
             this.zigzagDirection *= -1;
         }
+        
     }
     
     updateMovementPattern() {
@@ -226,12 +287,12 @@ export default class Dove extends Phaser.Physics.Arcade.Sprite {
     }
     
     checkHit(x, y) {
-        // Hit detection with reduced radius for increased difficulty
+        // Hit detection with challenging but fair radius
         const doveCenterX = this.x;
         const doveCenterY = this.y;
         
-        // Reduced hit radius by 33% from 48 to 32 pixels for more challenging gameplay
-        const hitRadius = 32; // Further reduced for precision aiming
+        // Balanced hit radius - challenging but not frustrating
+        const hitRadius = 32; // Requires precision but still achievable
         
         // Calculate distance from click to dove center
         const distance = Math.sqrt(
@@ -247,8 +308,9 @@ export default class Dove extends Phaser.Physics.Arcade.Sprite {
         this.isHit = true;
         this.active = false;
         
-        // Change sprite appearance (darker/different color)
-        this.setTint(0x888888);
+        // Change sprite appearance (darker/different color) - Graphics objects don't support setTint
+        // Instead, we'll change the alpha or recreate with darker colors
+        this.setAlpha(0.7);
         
         // Stop horizontal movement, add falling physics
         this.body.setVelocity(Phaser.Math.Between(-50, 50), 0);
@@ -283,19 +345,31 @@ export default class Dove extends Phaser.Physics.Arcade.Sprite {
     }
     
     createHitEffect() {
-        // Create particle effect for hit
-        const particles = this.scene.add.particles(this.x, this.y, 'dove', {
-            scale: { start: 0.3, end: 0 },
-            speed: { min: 50, max: 150 },
-            lifespan: 500,
-            quantity: 8,
-            tint: [0xff0000, 0xffff00, 0xff8800]
-        });
-        
-        // Clean up particles
-        this.scene.time.delayedCall(1000, () => {
-            particles.destroy();
-        });
+        // Create simple circle particles for hit effect
+        for (let i = 0; i < 8; i++) {
+            const particle = this.scene.add.graphics();
+            particle.fillStyle(Phaser.Utils.Array.GetRandom([0xff0000, 0xffff00, 0xff8800]));
+            particle.fillCircle(0, 0, 2);
+            particle.setPosition(this.x, this.y);
+            
+            // Random direction and speed
+            const angle = (Math.PI * 2 * i) / 8 + (Math.random() - 0.5) * 0.5;
+            const speed = 50 + Math.random() * 100;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            
+            // Animate particle
+            this.scene.tweens.add({
+                targets: particle,
+                x: particle.x + vx,
+                y: particle.y + vy,
+                alpha: 0,
+                scale: 0,
+                duration: 500,
+                ease: 'Power2',
+                onComplete: () => particle.destroy()
+            });
+        }
         
         // Screen shake effect
         this.scene.cameras.main.shake(100, 0.02);

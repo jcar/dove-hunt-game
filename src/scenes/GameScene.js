@@ -248,22 +248,17 @@ export default class GameScene extends Phaser.Scene {
         let hit = false;
         this.doves.forEach((dove, index) => {
             if (dove.active && dove.checkHit(pointer.x, pointer.y)) {
-                console.log(`DEBUG: Dove hit! dovesHit was ${this.dovesHit}, now will be ${this.dovesHit + 1}`);
                 dove.hit();
                 
                 // Track accuracy statistics - calculate BEFORE we decremented shotsLeft
                 const shotsUsed = this.levelConfig.shotsPerRound - this.shotsLeft; // shotsLeft was already decremented above
-                console.log(`DEBUG: Shot tracking - shotsPerRound=${this.levelConfig.shotsPerRound}, shotsLeft=${this.shotsLeft}, shotsUsed=${shotsUsed}`);
                 
                 if (shotsUsed === 1) {
                     this.gameStats.firstShotHits++;
-                    console.log('DEBUG: Recorded as FIRST shot hit');
                 } else if (shotsUsed === 2) {
                     this.gameStats.secondShotHits++;
-                    console.log('DEBUG: Recorded as SECOND shot hit');
                 } else if (shotsUsed === 3) {
                     this.gameStats.thirdShotHits++;
-                    console.log('DEBUG: Recorded as THIRD shot hit');
                 }
                 
                 // Calculate score based on accuracy and level difficulty
@@ -273,15 +268,10 @@ export default class GameScene extends Phaser.Scene {
                 this.gameStats.totalDoves++;
                 hit = true;
                 
-                console.log(`DEBUG: After hit - dovesHit=${this.dovesHit}, gameStats.totalDoves=${this.gameStats.totalDoves}`);
-                console.log(`DEBUG: Current stats - first:${this.gameStats.firstShotHits}, second:${this.gameStats.secondShotHits}, third:${this.gameStats.thirdShotHits}`);
-                
                 // Don't remove dove from array immediately - let it fall and then get cleaned up naturally
             }
         });
 
-        // Sound effect placeholder (removed to prevent errors)
-        
         this.updateUI();
 
         // Check level completion
@@ -316,20 +306,14 @@ export default class GameScene extends Phaser.Scene {
         const activeDoves = this.doves.filter(dove => dove.active);
         const allDovesSpawned = this.dovesSpawned >= this.dovesRequired;
         
-        // Debug logging
-        console.log(`DEBUG: dovesSpawned=${this.dovesSpawned}, dovesRequired=${this.dovesRequired}, activeDoves=${activeDoves.length}, dovesHit=${this.dovesHit}`);
-        console.log(`DEBUG: allDovesSpawned=${allDovesSpawned}, levelCompleting=${this.levelCompleting}`);
-        
         // Don't end level immediately - let dove fall animation play
         if (allDovesSpawned && activeDoves.length === 0) {
             // Only complete level if we haven't already started the completion process
             if (!this.levelCompleting) {
                 this.levelCompleting = true;
-                console.log('All doves down - waiting for animations to finish');
                 
                 // Wait 3 seconds to let dove fall animations play and player celebrate
                 this.time.delayedCall(3000, () => {
-                    console.log('Level ending - no active doves');
                     this.completeLevel();
                 });
             }
@@ -337,14 +321,11 @@ export default class GameScene extends Phaser.Scene {
             // Game over - ran out of shots with doves still active
             if (!this.levelCompleting) {
                 this.levelCompleting = true;
-                console.log('Game over - no shots left but doves still active');
                 // Also add a small delay for game over to let final shot animation play
                 this.time.delayedCall(1500, () => {
                     this.gameOver();
                 });
             }
-        } else {
-            console.log('DEBUG: Level not ending - waiting for conditions');
         }
     }
 

@@ -167,59 +167,59 @@ export default class IntroScene extends Phaser.Scene {
         // Create an animated dove that flies across the screen
         const dove = this.add.graphics();
         
-        // Main body (light pearl gray)
-        dove.fillStyle(0xF5F5F5);
+        // Main body (light grey)
+        dove.fillStyle(0xE0E0E0);
         dove.fillEllipse(0, 0, 28, 16);
         
-        // Body shading
-        dove.fillStyle(0xE8E8E8);
+        // Body shading (darker grey)
+        dove.fillStyle(0xD0D0D0);
         dove.fillEllipse(1, 1, 24, 12);
         
-        // Head (pure white)
-        dove.fillStyle(0xFFFFFF);
-        dove.fillCircle(-10, -5, 8);
+        // Head (medium grey) - at the FRONT (right side)
+        dove.fillStyle(0xE8E8E8);
+        dove.fillCircle(10, -5, 8);
         
         // Head highlight
-        dove.fillStyle(0xF8F8F8);
-        dove.fillCircle(-8, -6, 4);
+        dove.fillStyle(0xE0E0E0);
+        dove.fillCircle(12, -6, 4);
         
-        // Beak (orange-yellow)
-        dove.fillStyle(0xFFA500);
+        // Beak (dark grey) - pointing forward (right)
+        dove.fillStyle(0x666666);
         dove.beginPath();
-        dove.moveTo(-16, -5);
-        dove.lineTo(-20, -3);
-        dove.lineTo(-16, -1);
+        dove.moveTo(16, -5);
+        dove.lineTo(20, -3);
+        dove.lineTo(16, -1);
         dove.closePath();
         dove.fillPath();
         
-        // Wing with feather details
-        dove.fillStyle(0xDDDDDD);
-        dove.fillEllipse(2, -1, 18, 12);
+        // Wing with feather details - in the middle
+        dove.fillStyle(0xC8C8C8);
+        dove.fillEllipse(-2, -1, 18, 12);
         
         // Wing feather layers
-        dove.fillStyle(0xCCCCCC);
-        dove.fillEllipse(6, 0, 14, 8);
-        dove.fillEllipse(9, 1, 10, 6);
+        dove.fillStyle(0xB8B8B8);
+        dove.fillEllipse(-6, 0, 14, 8);
+        dove.fillEllipse(-9, 1, 10, 6);
         
         // Wing tips
-        dove.fillStyle(0xAAAAAA);
-        dove.fillEllipse(12, 1, 6, 4);
+        dove.fillStyle(0xA0A0A0);
+        dove.fillEllipse(-12, 1, 6, 4);
         
-        // Tail feathers
-        dove.fillStyle(0xE0E0E0);
-        dove.fillEllipse(12, 0, 10, 6);
+        // Tail feathers - at the BACK (left side)
+        dove.fillStyle(0xD0D0D0);
+        dove.fillEllipse(-12, 0, 10, 6);
         
         // Eye
         dove.fillStyle(0x000000);
-        dove.fillCircle(-12, -6, 1.5);
+        dove.fillCircle(12, -6, 1.5);
         
         // Eye highlight
         dove.fillStyle(0xFFFFFF);
-        dove.fillCircle(-11, -7, 0.6);
+        dove.fillCircle(13, -7, 0.6);
         
         // Neck definition
-        dove.fillStyle(0xF0F0F0);
-        dove.fillEllipse(-6, -2, 6, 4);
+        dove.fillStyle(0xD8D8D8);
+        dove.fillEllipse(6, -2, 6, 4);
 
         // Start position
         dove.setPosition(-50, 150);
