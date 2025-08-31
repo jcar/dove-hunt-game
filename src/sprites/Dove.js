@@ -33,18 +33,24 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         this.groupData = groupData; // For formation flying
         this.flightPattern = this.selectFlightPattern(level); // Level-based flight pattern selection
         
-        // Movement properties
-        this.baseSpeed = Phaser.Math.Between(80, 150);
+        // Movement properties - increased base speed
+        this.baseSpeed = Phaser.Math.Between(120, 200); // Increased from 80-150 to 120-200
         this.speed = this.baseSpeed * speedMultiplier;
         this.speedMultiplier = speedMultiplier;
-        this.waveAmplitude = Phaser.Math.Between(30, 70); // Randomized wave size
-        this.waveFrequency = (0.01 + Math.random() * 0.03) * speedMultiplier; // More random wave frequency
+        this.waveAmplitude = Phaser.Math.Between(30, 70); // Increased for more variation
+        this.waveFrequency = (0.02 + Math.random() * 0.03) * speedMultiplier; // Increased frequency
         this.initialY = this.y;
         this.timeAlive = 0;
         
+        // Enhanced movement for more challenge - stronger curves
+        this.curveIntensity = Phaser.Math.FloatBetween(0.6, 1.2); // Increased from 0.3-0.8 to 0.6-1.2
+        this.curveTimer = 0;
+        this.microWobbleTimer = 0;
+        this.microWobbleFreq = Phaser.Math.FloatBetween(0.15, 0.4); // Increased wobble frequency
+        
         // Enhanced movement properties
         this.directionChangeTimer = 0;
-        this.directionChangeCooldown = Phaser.Math.Between(60, 180); // Change direction every 1-3 seconds
+        this.directionChangeCooldown = Phaser.Math.Between(180, 360); // Change direction every 3-6 seconds (increased from 1-3)
         this.zigzagDirection = 1;
         this.erraticTimer = 0;
         this.circleTimer = 0;
@@ -256,15 +262,15 @@ export default class Dove extends Phaser.GameObjects.Graphics {
         // Handle different flight patterns with enhanced movement
         this.updateMovementPattern();
         
-        // More frequent direction changes based on timer
+        // Less frequent direction changes based on timer for more stable flight
         if (this.directionChangeTimer >= this.directionChangeCooldown) {
             this.changeDirection();
             this.directionChangeTimer = 0;
-            this.directionChangeCooldown = Phaser.Math.Between(30, 120); // 0.5-2 seconds
+            this.directionChangeCooldown = Phaser.Math.Between(180, 360); // 3-6 seconds (increased from 0.5-2)
         }
         
-        // Random sudden direction changes (more frequent)
-        if (Phaser.Math.Between(0, 100) < 3) { // 3% chance each frame
+        // Reduced random sudden direction changes for more predictable flight
+        if (Phaser.Math.Between(0, 100) < 1) { // Reduced from 3% to 1% chance each frame
             this.suddenDirectionChange();
         }
         
@@ -287,43 +293,78 @@ export default class Dove extends Phaser.GameObjects.Graphics {
     }
     
     updateMovementPattern() {
+        // Add universal micro-wobble to ALL flight patterns for more challenge
+        this.microWobbleTimer += 1/60;
+        const microWobble = Math.sin(this.microWobbleTimer * this.microWobbleFreq * 60) * 12; // Increased from 8px to 12px
+        
+        // Add stronger curve progression to all patterns
+        this.curveTimer += 1/60;
+        const curveEffect = Math.sin(this.curveTimer * 1.2) * (25 * this.curveIntensity); // Increased from 15 to 25, faster curve
+        
         switch(this.flightPattern) {
-            case 0: // Straight flight (but with occasional wobble)
-                if (Phaser.Math.Between(0, 200) < 1) {
-                    this.body.setVelocityY(this.body.velocity.y + Phaser.Math.Between(-20, 20));
+            case 0: // "Straight" flight - now with pronounced curves and wobble
+                // Apply curve effect and wobble for natural movement
+                const baseVelY = curveEffect + microWobble;
+                this.body.setVelocityY(baseVelY);
+                
+                // Less frequent direction changes for more stable flight
+                if (Phaser.Math.Between(0, 200) < 1) { // Reduced from 80 to 200 for less frequent changes
+                    const nudge = Phaser.Math.Between(-25, 25); // Reduced from -35/35 to -25/25
+                    this.body.setVelocityY(this.body.velocity.y + nudge);
                 }
+                
+                // Reduced the drift effect to be more subtle
+                const drift = Math.sin(this.timeAlive * 1.5) * 5; // Reduced from 2.5*8 to 1.5*5
+                this.body.setVelocityY(this.body.velocity.y + drift);
                 break;
                 
-            case 1: // Wave pattern
+            case 1: // Wave pattern - enhanced with curves
                 const waveY = this.initialY + Math.sin(this.timeAlive * this.waveFrequency * this.speed) * this.waveAmplitude;
-                this.y = waveY;
+                // Add the curve and wobble on top of the wave
+                this.y = waveY + curveEffect + microWobble;
                 break;
                 
-            case 2: // Diagonal flight with direction changes
-                // Keep the diagonal movement but add some variation
-                if (Phaser.Math.Between(0, 150) < 1) {
-                    this.body.setVelocityY(this.body.velocity.y * -0.8); // Reverse direction occasionally
+            case 2: // Diagonal flight - with curved trajectory
+                // Add curve and wobble to diagonal movement
+                const currentVelY = this.body.velocity.y + (curveEffect * 0.3) + microWobble;
+                this.body.setVelocityY(currentVelY);
+                
+                // More frequent direction changes for diagonals
+                if (Phaser.Math.Between(0, 100) < 1) {
+                    this.body.setVelocityY(this.body.velocity.y * -0.7); // Reverse direction occasionally
                 }
                 break;
                 
-            case 3: // Zigzag pattern
-                if (this.erraticTimer % 40 === 0) { // Change every ~0.67 seconds
+            case 3: // Zigzag pattern - enhanced
+                if (this.erraticTimer % 35 === 0) { // Slightly more frequent changes
                     this.zigzagDirection *= -1;
-                    this.body.setVelocityY(this.zigzagDirection * Phaser.Math.Between(40, 80));
+                    const zigzagPower = Phaser.Math.Between(50, 90); // Stronger zigzag
+                    this.body.setVelocityY(this.zigzagDirection * zigzagPower + curveEffect);
                 }
+                // Add wobble even during zigzag
+                this.body.setVelocityY(this.body.velocity.y + microWobble * 0.5);
                 break;
                 
-            case 4: // Erratic/chaotic movement
-                if (this.erraticTimer % 20 === 0) { // Change every ~0.33 seconds
-                    const newVelY = Phaser.Math.Between(-100, 100);
-                    this.body.setVelocityY(newVelY);
-                    // Occasionally change horizontal speed too
-                    if (Phaser.Math.Between(0, 100) < 20) {
-                        const speedVariation = this.speed * Phaser.Math.FloatBetween(0.8, 1.3);
+            case 4: // Erratic/chaotic movement - toned down for playability
+                if (this.erraticTimer % 60 === 0) { // Reduced from 18 to 60 frames (every 1 second instead of 3x per second)
+                    const newVelY = Phaser.Math.Between(-80, 80); // Reduced from -120/120 to -80/80
+                    this.body.setVelocityY(newVelY + curveEffect);
+                    
+                    // Less frequent horizontal speed changes
+                    if (Phaser.Math.Between(0, 100) < 20) { // Reduced from 35% to 20%
+                        const speedVariation = this.speed * Phaser.Math.FloatBetween(0.8, 1.2); // Reduced from 0.7-1.4 to 0.8-1.2
                         this.body.setVelocityX(speedVariation);
                     }
                 }
+                // Reduced micro-wobble for erratic pattern
+                this.body.setVelocityY(this.body.velocity.y + microWobble * 0.3); // Reduced from full wobble to 30%
                 break;
+        }
+        
+        // Add slight horizontal speed variation for all patterns (very subtle)
+        if (Phaser.Math.Between(0, 300) < 1) {
+            const horizontalNudge = this.speed * Phaser.Math.FloatBetween(0.95, 1.05);
+            this.body.setVelocityX(horizontalNudge);
         }
     }
     
