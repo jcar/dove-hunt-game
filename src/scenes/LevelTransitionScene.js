@@ -124,7 +124,7 @@ export default class LevelTransitionScene extends Phaser.Scene {
 
         const preview = [
             `Doves: ${levelConfig.doveCount}`,
-            `Speed: ${levelConfig.speedMultiplier}x`,
+            `Speed: ${levelConfig.speedMultiplier.toFixed(1)}x`,
             `Shots: ${levelConfig.shotsPerRound}`
         ];
 
@@ -402,21 +402,77 @@ export default class LevelTransitionScene extends Phaser.Scene {
     }
 
     getLevelConfig(level) {
-        // Define level configurations
-        const configs = {
-            1: { doveCount: 1, speedMultiplier: 1.0, shotsPerRound: 3 },
-            2: { doveCount: 2, speedMultiplier: 1.1, shotsPerRound: 3 },
-            3: { doveCount: 2, speedMultiplier: 1.2, shotsPerRound: 3 },
-            4: { doveCount: 3, speedMultiplier: 1.3, shotsPerRound: 3 },
-            5: { doveCount: 3, speedMultiplier: 1.4, shotsPerRound: 3 },
-            6: { doveCount: 4, speedMultiplier: 1.5, shotsPerRound: 3 },
-            7: { doveCount: 4, speedMultiplier: 1.6, shotsPerRound: 3 },
-            8: { doveCount: 5, speedMultiplier: 1.7, shotsPerRound: 3 },
-            9: { doveCount: 5, speedMultiplier: 1.8, shotsPerRound: 3 },
-            10: { doveCount: 6, speedMultiplier: 2.0, shotsPerRound: 3 }
-        };
-
-        return configs[level] || configs[10];
+        // Use the same level configuration as GameScene to ensure consistency
+        
+        // 🌱 Levels 1–5: Learning the Flight
+        if (level <= 5) {
+            const doveCount = level <= 2 ? 1 : 2; // Single dove for first two levels, then pairs
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 0.8 + (level * 0.1), // 0.9 to 1.3 - slow, floating takeoffs
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: level >= 3 ? 0.3 : 0, // 30% chance of pairs from level 3+
+                whiteDoveChance: 0, // No white doves in learning levels
+                spawnDelay: 3000 - (level * 200), // 3s to 2s spawn intervals
+                description: "Learning the Flight - Calm morning doves"
+            };
+        }
+        
+        // 🌿 Levels 6–10: Quick Flutters  
+        else if (level <= 10) {
+            const doveCount = 2;
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 1.2 + ((level - 5) * 0.15), // 1.35 to 1.95 - faster with bursts
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 0.6, // 60% chance of doubles
+                whiteDoveChance: 0.05, // 5% chance of white dove
+                spawnDelay: 2000 - ((level - 5) * 100), // 2s to 1.5s intervals
+                description: "Quick Flutters - Doves flushing from tree line"
+            };
+        }
+        
+        // 🌾 Levels 11–15: Erratic Scatters
+        else if (level <= 15) {
+            const doveCount = 2 + Math.floor((level - 10) / 2); // 2-4 doves, increasing
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 1.8 + ((level - 10) * 0.1), // 1.9 to 2.3 - much quicker
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 0.8, // 80% chance of groups
+                whiteDoveChance: 0.1, // 10% chance of white dove
+                spawnDelay: 1500 - ((level - 10) * 50), // 1.5s to 1.25s intervals
+                description: "Erratic Scatters - Spooked flock chaos"
+            };
+        }
+        
+        // 🌳 Levels 16–20: Flock & Frenzy
+        else if (level <= 20) {
+            const doveCount = 3 + Math.floor((level - 15) / 2); // 3-5 doves
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 2.2 + ((level - 15) * 0.15), // 2.35 to 2.95 - very fast
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 0.9, // 90% chance of flocks
+                whiteDoveChance: 0.15, // 15% chance of white dove
+                spawnDelay: 1200 - ((level - 15) * 30), // 1.2s to 1.05s intervals
+                description: "Flock & Frenzy - Sunflower field chaos"
+            };
+        }
+        
+        // 🌌 Levels 21+: Expert Dove Mastery
+        else {
+            const doveCount = Math.min(5 + Math.floor((level - 20) / 2), 8); // 5-8 doves max
+            return {
+                doveCount: doveCount,
+                speedMultiplier: 2.8 + ((level - 20) * 0.1), // 2.9+ - max velocity
+                shotsPerRound: Math.ceil(doveCount * 1.5), // 3 shots per 2 birds (1.5x)
+                groupSpawnChance: 1.0, // Always large flocks
+                whiteDoveChance: 0.2, // 20% chance of white dove
+                spawnDelay: Math.max(800, 1000 - ((level - 20) * 20)), // Down to 800ms minimum
+                description: "Expert Mastery - Chaotic mixed-speed flocks"
+            };
+        }
     }
 
     handleContinue() {

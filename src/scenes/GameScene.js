@@ -479,53 +479,47 @@ export default class GameScene extends Phaser.Scene {
     }
     
     calculateHitScore(isWhiteDove = false) {
-        // Base score increases with level difficulty
-        let baseScore = 100 + (this.level * 25); // 125 pts level 1, up to 725 pts level 25
+        // Base score - much more reasonable
+        let baseScore = 25 + (this.level * 5); // 30 pts level 1, up to 150 pts level 25
         
-        // White dove bonus - worth 3x more points and smaller/faster
+        // White dove bonus - worth 2x more points (not 3x)
         if (isWhiteDove) {
-            baseScore *= 3; // Triple points for white doves
+            baseScore *= 2; // Double points for white doves
         }
         
-        // Accuracy bonus based on shots remaining
-        let accuracyMultiplier = 1.0;
+        // Small accuracy bonus based on shots remaining
+        let accuracyBonus = 0;
         const shotsUsed = this.levelConfig.shotsPerRound - this.shotsLeft;
         
         if (shotsUsed === 1) {
-            // First shot hit - excellent accuracy!
-            accuracyMultiplier = 2.0; // Double points
+            // First shot hit - small bonus
+            accuracyBonus = 10; // Just 10 extra points
         } else if (shotsUsed === 2) {
-            // Second shot hit - good accuracy
-            accuracyMultiplier = 1.5; // 50% bonus
+            // Second shot hit - tiny bonus
+            accuracyBonus = 5; // Just 5 extra points
         }
-        // Third shot gets no bonus (1.0x)
+        // Third+ shot gets no bonus
         
-        return Math.round(baseScore * accuracyMultiplier);
+        return baseScore + accuracyBonus;
     }
     
     calculateLevelBonus() {
-        const shotsUsed = this.levelConfig.shotsPerRound - this.shotsLeft;
         const perfectAccuracy = this.dovesHit === this.dovesRequired;
         
         let bonus = 0;
         
-        // Perfect accuracy bonus
-        if (perfectAccuracy) {
-            bonus += 500 + (this.level * 50); // 550 pts level 1, up to 1750 pts level 25
-        }
-        
-        // Efficiency bonus for unused shots
-        if (perfectAccuracy && this.shotsLeft > 0) {
-            const efficiency = this.shotsLeft; // Number of unused shots
-            bonus += efficiency * 250 * this.level; // 250-2500 per unused shot depending on level
-        }
-        
-        // Speed bonus (complete level quickly)
-        const levelDuration = (this.time.now - this.levelStartTime) / 1000; // seconds
-        if (levelDuration < 10) {
-            // Bonus for completing level in under 10 seconds
-            const speedBonus = Math.max(0, (10 - levelDuration) * 100 * this.level);
-            bonus += Math.round(speedBonus);
+        // Only give bonuses starting from level 10+ to keep early scoring simple
+        if (this.level >= 10) {
+            // Small perfect accuracy bonus for higher levels only
+            if (perfectAccuracy) {
+                bonus += 10 + (this.level * 2); // 30 pts level 10, up to 60 pts level 25
+            }
+            
+            // Small efficiency bonus for unused shots
+            if (perfectAccuracy && this.shotsLeft > 0) {
+                const efficiency = this.shotsLeft; // Number of unused shots
+                bonus += efficiency * 5; // Just 5 points per unused shot
+            }
         }
         
         return bonus;
